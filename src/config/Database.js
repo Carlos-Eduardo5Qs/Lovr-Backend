@@ -33,6 +33,7 @@ Database.prototype.execute = async function (query, params) {
     return rows;
 };
 
+//Observação
 Database.prototype.query = async function (query, params) {
     const [result] = await this.pool.query(query, params);
     return result;
