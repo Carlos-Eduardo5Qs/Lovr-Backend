@@ -1,12 +1,13 @@
 const CreateUser = require('../services/createUserService');
+const { AppError, NotFoundError } = require('../utils/Error');
 
 exports.create = (req, res) => {
     try {
         const { name, email, password } = req.body;
 
         if (!name || !email || !password) {
-            return res.status(400).json({ error: 'Campos obrigatórios ausentes' });
-        }
+            throw new NotFoundError('Todos os campos são obrigatórios: name, email e password.');
+        };
 
         const userData = new CreateUser(name, email, password).init();
 
@@ -24,10 +25,10 @@ exports.create = (req, res) => {
             error: null
         });
     } catch (error) {
-        if (error.name === 'Error') {
-            return res.status(400).json({
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({
                 success: false,
-                status: 400,
+                status: error.statusCode,
                 error: error.message,
                 data: null,
             });
@@ -36,7 +37,7 @@ exports.create = (req, res) => {
         return res.status(500).json({
             success: false,
             status: 500,
-            error: 'Erro interno do servidor',
+            error: 'Erro interno do servidor.',
             data: null,
         });
     }

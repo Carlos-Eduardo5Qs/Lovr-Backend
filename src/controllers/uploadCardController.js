@@ -1,20 +1,45 @@
+const { AppError, NotFoundError } = require('../utils/Error');
+
 exports.uploadCards = (req, res) => {
-    const { user_id, message, position } = req.body;
-    const imageBuffer = req.file.buffer
-    const mimeType = req.file.mimetype;
+    try{
+        const { user_id, message, position } = req.body;
+        const imageBuffer = req.file.buffer
+        const mimeType = req.file.mimetype;
 
-    if (!user_id || !message || !position || !imageBuffer || !mimeType) {
-        return res.status(400).json({ error: 'Campos obrigatórios ausentes' });
+        if (!user_id || !message || !position || !imageBuffer || !mimeType) {
+            throw new NotFoundError('Preencha todos os campos obrigatórios (usuário, mensagem, posição e imagem).');
+        }
+
+        return res.status(201).json({
+            success: true,
+            status: 201,
+            message: "O card foi criado",
+            data: {
+                id: user_id,
+                message,
+                position,
+                image: {
+                    buffer: 'Não se preocupe, o buffer está salvo e seguro.',
+                    mimeType: mimeType
+                }
+            },
+            error: null
+        });
+    } catch (error) { 
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({
+                success: false,
+                status: error.statusCode,
+                error: error.message,
+                data: null
+            });
+        }
+
+        return res.status(500).json({
+            success: false,
+            status: 500,
+            error: 'Erro interno do servidor.',
+            data: null
+        })
     }
-
-    console.log('');
-    console.log('Os dados foram recebidos no backend');
-    console.log('User ID:', user_id);
-    console.log('Message:', message);
-    console.log('Position:', position);
-    console.log('Image Buffer:', imageBuffer);
-    console.log('MIME Type:', mimeType);
-    console.log('');
-
-    return res.status(200).json({ message: 'Cards uploaded successfully'});
 };
