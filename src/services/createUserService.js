@@ -3,6 +3,8 @@ require('dotenv').config();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
+const saveToDatabase = require('../models/createUserModels');
+
 const { AppError, ValidationError, NotFoundError } = require('../utils/Error');
 
 function CreateUser (name, email, password) {
@@ -12,16 +14,14 @@ function CreateUser (name, email, password) {
 }
 
 CreateUser.prototype.init = async function () {
-    const id = 15; // Simulação de ID gerado pelo banco de dados
     const name = this.isValidName(this.name);
     const email = this.isValidEmail(this.email);
-    const password = this.isValidPassword(this.password);   
+    const password = this.isValidPassword(this.password);
     const hashPassword = await this.createHashPassword(this.password);
-    const token = this.createToken({id, name, email});
+    const userId = await saveToDatabase(name, email, hashPassword);
+    const token = this.createToken({id: userId, name, email});
 
-    //... fuction to save userData to the database would go here
-
-    return { id, name, email, hashPassword, token };
+    return { id: userId, name, email, hashPassword, token };
 };
 
 CreateUser.prototype.isValidName = function (name) {
