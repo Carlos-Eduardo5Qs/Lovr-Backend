@@ -1,4 +1,4 @@
-const CreateUser = require('../services/createUserService');
+const CreateUser = require('../services/CreateUserService');
 const { AppError, NotFoundError } = require('../utils/Error');
 
 exports.create = async (req, res) => {
@@ -18,7 +18,6 @@ exports.create = async (req, res) => {
             data: {
                 id: userData.id,
                 name: userData.name,
-                email: userData.email,
                 token: userData.token,
             },
             error: null

@@ -3,7 +3,7 @@ require('dotenv').config();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-const saveToDatabase = require('../models/createUserModels');
+const saveToDatabase = require('../models/createUserModel');
 
 const { AppError, ValidationError, NotFoundError } = require('../utils/Error');
 
@@ -19,7 +19,7 @@ CreateUser.prototype.init = async function () {
     const password = this.isValidPassword(this.password);
     const hashPassword = await this.createHashPassword(this.password);
     const userId = await saveToDatabase(name, email, hashPassword);
-    const token = this.createToken({id: userId, name, email});
+    const token = this.createToken({ id: userId });
 
     return { id: userId, name, email, hashPassword, token };
 };
@@ -88,7 +88,8 @@ CreateUser.prototype.createHashPassword = async function(passwd) {
 
 CreateUser.prototype.createToken = function (payload) {
     try {
-        const token = jwt.sign(payload, process.env.SECRET_JWT, {expiresIn: '7d'});
+        // Mudar para 7d em produção.
+        const token = jwt.sign(payload, process.env.SECRET_JWT, {expiresIn: '7years'});
         return token;
     } catch (error) {
         throw new AppError('Erro interno do servidor.', 500);
