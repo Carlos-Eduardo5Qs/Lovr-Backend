@@ -12,19 +12,18 @@ exports.uploadCards = async (req, res) => {
             throw new NotFoundError('Preencha todos os campos obrigatórios (user_id, message, position e photo).');
         }
 
-        const cardData = await new CardService().create(user_id);
+        const cardData = await new CardService().saveCardInTheDatabase(user_id, imageBuffer, mimeType, position, message);
 
         return res.status(201).json({
             success: true,
             status: 201,
             message: "O card foi criado",
-            data: {
-                id: user_id,
+            card: {
+                id: cardData.cardId,
                 message,
                 position,
                 image: {
-                    buffer: 'Não se preocupe, o buffer está salvo e seguro.',
-                    mimeType: mimeType
+                    url: cardData.uploadPhoto.url,
                 }
             },
             error: null
@@ -38,8 +37,6 @@ exports.uploadCards = async (req, res) => {
                 data: null
             });
         }
-
-        console.log(error);
 
         return res.status(500).json({
             success: false,
