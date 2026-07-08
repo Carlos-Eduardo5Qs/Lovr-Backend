@@ -1,7 +1,8 @@
 const cloudinary = require('../config/cloudinary');
 
 const { AppError, ValidationError ,NotFoundError } = require('../utils/Error');
-const { create } = require('../models/cardModels');
+const { create, getAllcard } = require('../models/cardModels');
+
 const User = require('../services/UserService');
 
 function Cards () { this.user = new User() }
@@ -34,7 +35,7 @@ Cards.prototype.uploadPhotoToCloudinary = async function (buffer, mimetype) {
         const isValidMimeType = ['image/jpeg', 'image/png'].includes(mimetype);
 
         if (!isValidMimeType) {
-            throw new ValidationError('Tipo de arquivo inválido. Apenas imagens JPEG, PNG e GIF são permitidas.');
+            throw new ValidationError('Tipo de arquivo inválido. Apenas imagens JPEG e PNG são permitidas.');
         }
 
         const result = await new Promise((resolve, reject) => {
@@ -52,6 +53,17 @@ Cards.prototype.uploadPhotoToCloudinary = async function (buffer, mimetype) {
         if (error instanceof AppError) throw error;
         throw new AppError('Erro interno do servidor.', 500);
     }
+};
+
+Cards.prototype.getAllCardsFromDatabase = async function (userId) {
+    const id = this.user.isValidUserId(userId);
+    const user = await this.user.userIdExists(id);
+
+    if (!user) throw new NotFoundError('Usuário não encontrado.');
+
+    const list = await getAllcard(id);
+
+    return list;
 };
 
 module.exports = Cards;

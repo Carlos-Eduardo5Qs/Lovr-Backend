@@ -1,5 +1,5 @@
-const User = require('../services/UserService');
-const { AppError, NotFoundError } = require('../utils/Error');
+const User = require('../../services/UserService');
+const { AppError, NotFoundError } = require('../../utils/Error');
 
 exports.create = async (req, res) => {
     try {
