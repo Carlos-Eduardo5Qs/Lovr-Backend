@@ -1,4 +1,9 @@
-const { ValidationError } = require('../utils/Error');
+require('dotenv').config();
+
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+
+const { AppError, ValidationError, NotFoundError } = require('../utils/Error');
 
 function CreateUser (name, email, password) {
     this.name = name;
@@ -6,17 +11,21 @@ function CreateUser (name, email, password) {
     this.password = password;
 }
 
-CreateUser.prototype.init = function () {
+CreateUser.prototype.init = async function () {
     const id = 15; // Simulação de ID gerado pelo banco de dados
     const name = this.isValidName(this.name);
     const email = this.isValidEmail(this.email);
-    const password = this.isValidPassword(this.password);
+    const password = this.isValidPassword(this.password);   
+    const hashPassword = await this.createHashPassword(this.password);
+    const token = this.createToken({id, name, email});
 
-    return { id, name, email, password };
+    //... fuction to save userData to the database would go here
+
+    return { id, name, email, hashPassword, token };
 };
 
 CreateUser.prototype.isValidName = function (name) {
-    if (!name) return false;
+    if (!name) throw new NotFoundError('Campo name ausente ou invalido.');
     if (name.length < 3) throw new ValidationError('Nome deve ter pelo menos 3 caracteres.');
 
     const cleanedName = name.trim();
@@ -28,7 +37,7 @@ CreateUser.prototype.isValidName = function (name) {
 };
 
 CreateUser.prototype.isValidEmail = function (email) {
-    if (!email) return false;
+    if (!email) throw new NotFoundError('Campo email ausente ou inválido.');
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -38,7 +47,7 @@ CreateUser.prototype.isValidEmail = function (email) {
 };
 
 CreateUser.prototype.isValidPassword = function (password) {
-    if (!password) return false;
+    if (!password) throw new NotFoundError('Campo password ausente ou invalido.');
     if (password.length < 8) throw new ValidationError('Senha deve ter pelo menos 8 caracteres.');
 
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#_\-])[A-Za-z\d@$!%*?&.#_\-]{8,}$/;
@@ -65,4 +74,25 @@ CreateUser.prototype.isValidPassword = function (password) {
     return password;
 };
 
+CreateUser.prototype.createHashPassword = async function(passwd) {
+    try{    
+        if(!passwd) throw new NotFoundError('Campo password ausente ou inválido.');
+
+        const password = await bcrypt.hash(passwd, 10);
+
+        return password;
+    } catch(error) {
+        throw new AppError('Erro interno do servidor.', 500);
+    };
+};
+
+CreateUser.prototype.createToken = function (payload) {
+    try {
+        const token = jwt.sign(payload, process.env.SECRET_JWT, {expiresIn: '7d'});
+        return token;
+    } catch (error) {
+        throw new AppError('Erro interno do servidor.', 500);
+    }
+};
+    
 module.exports = CreateUser;

@@ -1,7 +1,7 @@
 const CreateUser = require('../services/createUserService');
 const { AppError, NotFoundError } = require('../utils/Error');
 
-exports.create = (req, res) => {
+exports.create = async (req, res) => {
     try {
         const { name, email, password } = req.body;
 
@@ -9,9 +9,7 @@ exports.create = (req, res) => {
             throw new NotFoundError('Todos os campos são obrigatórios: name, email e password.');
         };
 
-        const userData = new CreateUser(name, email, password).init();
-
-        //... fuction to save userData to the database would go here
+        const userData = await new CreateUser(name, email, password).init();
 
         return res.status(201).json({
             success: true,
@@ -21,6 +19,7 @@ exports.create = (req, res) => {
                 id: userData.id,
                 name: userData.name,
                 email: userData.email,
+                token: userData.token,
             },
             error: null
         });

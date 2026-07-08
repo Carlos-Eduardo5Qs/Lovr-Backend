@@ -7,7 +7,7 @@ exports.uploadCards = (req, res) => {
         const mimeType = req.file.mimetype;
 
         if (!user_id || !message || !position || !imageBuffer || !mimeType) {
-            throw new NotFoundError('Preencha todos os campos obrigatórios (usuário, mensagem, posição e imagem).');
+            throw new NotFoundError('Preencha todos os campos obrigatórios (user_id, message, position e photo).');
         }
 
         return res.status(201).json({
@@ -34,6 +34,8 @@ exports.uploadCards = (req, res) => {
                 data: null
             });
         }
+
+        console.log(error);
 
         return res.status(500).json({
             success: false,
