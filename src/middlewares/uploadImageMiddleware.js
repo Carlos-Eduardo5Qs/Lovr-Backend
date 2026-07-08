@@ -4,7 +4,7 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } }).single('photo');
 
 function uploadImageMiddleware(req, res, next) {
-    upload(req, res, function (err) {   
+    upload(req, res, function (err) {
         if (err instanceof multer.MulterError) {
             return res.status(400).json({
                 success: false,
