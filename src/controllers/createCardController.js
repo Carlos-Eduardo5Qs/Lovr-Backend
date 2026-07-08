@@ -1,6 +1,8 @@
 const { AppError, NotFoundError } = require('../utils/Error');
 
-exports.uploadCards = (req, res) => {
+const CardService = require('../services/CardService');
+
+exports.uploadCards = async (req, res) => {
     try{
         const { user_id, message, position } = req.body;
         const imageBuffer = req.file.buffer
@@ -9,6 +11,8 @@ exports.uploadCards = (req, res) => {
         if (!user_id || !message || !position || !imageBuffer || !mimeType) {
             throw new NotFoundError('Preencha todos os campos obrigatórios (user_id, message, position e photo).');
         }
+
+        const cardData = await new CardService().create(user_id);
 
         return res.status(201).json({
             success: true,
@@ -25,7 +29,7 @@ exports.uploadCards = (req, res) => {
             },
             error: null
         });
-    } catch (error) { 
+    } catch (error) {
         if (error instanceof AppError) {
             return res.status(error.statusCode).json({
                 success: false,

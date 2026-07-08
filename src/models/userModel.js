@@ -1,7 +1,7 @@
 const database = require('../config/Database');
 const { AppError } = require('../utils/Error');
 
-async function saveToDatabase(name, email, hashPassword) {
+async function create (name, email, hashPassword) {
     try {
         const query = 'INSERT INTO users (name_, email, passrd) VALUES (?, ?, ?)';
         const values = [name, email, hashPassword];
@@ -13,4 +13,14 @@ async function saveToDatabase(name, email, hashPassword) {
     }
 };
 
-module.exports = saveToDatabase;
+async function checkUserId (userId) {
+    const query = 'SELECT EXISTS(SELECT 1 FROM users WHERE id = ?) AS userExists';
+    const values = [userId];
+    const result = await database.execute(query, values);
+    return result[0].userExists === 1;
+};
+
+module.exports = { 
+    create,
+    checkUserId,
+};

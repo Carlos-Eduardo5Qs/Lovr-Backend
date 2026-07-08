@@ -3,29 +3,26 @@ require('dotenv').config();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-const saveToDatabase = require('../models/createUserModel');
+const { create, checkUserId } = require('../models/userModel');
 
 const { AppError, ValidationError, NotFoundError } = require('../utils/Error');
 
-function CreateUser (name, email, password) {
-    this.name = name;
-    this.email = email;
-    this.password = password;
-}
+function User () {}
 
-CreateUser.prototype.init = async function () {
-    const name = this.isValidName(this.name);
-    const email = this.isValidEmail(this.email);
-    const password = this.isValidPassword(this.password);
-    const hashPassword = await this.createHashPassword(this.password);
-    const userId = await saveToDatabase(name, email, hashPassword);
+User.prototype.saveUserInTheDatabase = async function (name, email, password) {
+    name = this.isValidName(name);
+    email = this.isValidEmail(email);
+    password = this.isValidPassword(password);
+
+    const hashPassword = await this.createHashPassword(password);
+    const userId = await create (name, email, hashPassword);
     const token = this.createToken({ id: userId });
 
     return { id: userId, name, email, hashPassword, token };
 };
 
-CreateUser.prototype.isValidName = function (name) {
-    if (!name) throw new NotFoundError('Campo name ausente ou invalido.');
+User.prototype.isValidName = function (name) {
+    if (!name) throw new NotFoundError('name ausente ou invalido.');
     if (name.length < 3) throw new ValidationError('Nome deve ter pelo menos 3 caracteres.');
 
     const cleanedName = name.trim();
@@ -36,8 +33,8 @@ CreateUser.prototype.isValidName = function (name) {
     return name
 };
 
-CreateUser.prototype.isValidEmail = function (email) {
-    if (!email) throw new NotFoundError('Campo email ausente ou inválido.');
+User.prototype.isValidEmail = function (email) {
+    if (!email) throw new NotFoundError('email ausente ou inválido.');
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -46,8 +43,8 @@ CreateUser.prototype.isValidEmail = function (email) {
     return email;
 };
 
-CreateUser.prototype.isValidPassword = function (password) {
-    if (!password) throw new NotFoundError('Campo password ausente ou invalido.');
+User.prototype.isValidPassword = function (password) {
+    if (!password) throw new NotFoundError('password ausente ou invalido.');
     if (password.length < 8) throw new ValidationError('Senha deve ter pelo menos 8 caracteres.');
 
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#_\-])[A-Za-z\d@$!%*?&.#_\-]{8,}$/;
@@ -74,9 +71,9 @@ CreateUser.prototype.isValidPassword = function (password) {
     return password;
 };
 
-CreateUser.prototype.createHashPassword = async function(passwd) {
-    try{    
-        if(!passwd) throw new NotFoundError('Campo password ausente ou inválido.');
+User.prototype.createHashPassword = async function (passwd) {
+    try{
+        if(!passwd) throw new NotFoundError('password ausente ou inválido.');
 
         const password = await bcrypt.hash(passwd, 10);
 
@@ -86,7 +83,7 @@ CreateUser.prototype.createHashPassword = async function(passwd) {
     };
 };
 
-CreateUser.prototype.createToken = function (payload) {
+User.prototype.createToken = function (payload) {
     try {
         // Mudar para 7d em produção.
         const token = jwt.sign(payload, process.env.SECRET_JWT, {expiresIn: '7years'});
@@ -95,5 +92,26 @@ CreateUser.prototype.createToken = function (payload) {
         throw new AppError('Erro interno do servidor.', 500);
     }
 };
-    
-module.exports = CreateUser;
+
+User.prototype.isValidUserId = function (userId) {
+    if (!userId) throw new NotFoundError('id ausente.');
+
+    const idNumber = Number(userId);
+
+    if (isNaN(idNumber) || idNumber <= 0 || !Number.isInteger(idNumber)) {
+        throw new ValidationError('id inválido');
+    }
+
+    return idNumber;
+}
+
+User.prototype.userIdExists = async function (userId) {
+    try {
+        const userExists = await checkUserId(userId);
+        return userExists;
+    } catch (error) {
+        throw new AppError('Erro interno do servidor.', 500);
+    }
+};
+
+module.exports = User;
