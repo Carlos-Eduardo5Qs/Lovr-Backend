@@ -19,7 +19,7 @@ Database.prototype.testConnection = async function() {
         const conection = await this.pool.getConnection();
         await conection.query('SELECT 1');
         conection.release();
-        console.log('✅ Conexão com o MySQL (LovrDB) foi estabelecida!');
+        console.log('✅ Conexão com o servidor MySQL foi estabelecida!');
         return true;
     } catch (error) {
         console.error('❌ Erro crítico: Não foi possível conectar ao banco de dados!');
