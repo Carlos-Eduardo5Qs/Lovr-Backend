@@ -23,7 +23,7 @@ Database.prototype.testConnection = async function() {
         return true;
     } catch (error) {
         console.error('❌ Erro crítico: Não foi possível conectar ao banco de dados!');
-        console.error(error.message);
+        console.error(error);
         throw error;
     }
 };

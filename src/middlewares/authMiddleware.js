@@ -15,21 +15,14 @@ function authMiddleware(req, res, next) {
 
         const token = part[1];
 
-        jwt.verify(token, process.env.SECRET_JWT, (error, decoded) => {
-            if (error) {
-                return res.status(401).json({
-                    success: false,
-                    status: 401,
-                    error: 'Acesso negado. Token inválido ou expirado.',
-                    data: null
-                })
-            }
+        const decoded = jwt.verify(token, process.env.SECRET_JWT);
+        
+        req.userId = decoded.id
 
-            req.userId = decoded.id
-
-            return next()
-        });
+        return next()
     } catch (error) {
+        if (!error.statusCode) console.error('Erro ou tentativa de invasão no middleware.', error);
+
         const statusCode = error.statusCode || 500;
         const message = error.statusCode ? error.message : 'Erro interno do servidor.';
 

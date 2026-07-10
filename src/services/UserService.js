@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 
 const { create, checkUserId } = require('../models/userModel');
 
-const { AppError, ValidationError, NotFoundError } = require('../utils/Error');
+const { ValidationError, NotFoundError } = require('../utils/Error');
 
 function User () {}
 
@@ -72,25 +72,17 @@ User.prototype.isValidPassword = function (password) {
 };
 
 User.prototype.createHashPassword = async function (passwd) {
-    try{
-        if(!passwd) throw new NotFoundError('password ausente ou inválido.');
+     if(!passwd) throw new NotFoundError('password ausente ou inválido.');
 
-        const password = await bcrypt.hash(passwd, 10);
+    const password = await bcrypt.hash(passwd, 10);
 
-        return password;
-    } catch(error) {
-        throw new AppError('Erro interno do servidor.', 500);
-    };
+    return password;
 };
 
 User.prototype.createToken = function (payload) {
-    try {
-        // Mudar para 7d em produção.
-        const token = jwt.sign(payload, process.env.SECRET_JWT, {expiresIn: '7years'});
-        return token;
-    } catch (error) {
-        throw new AppError('Erro interno do servidor.', 500);
-    }
+    // Mudar para 7d em produção.
+    const token = jwt.sign(payload, process.env.SECRET_JWT, {expiresIn: '7years'});
+    return token;
 };
 
 User.prototype.isValidUserId = function (userId) {
@@ -106,12 +98,8 @@ User.prototype.isValidUserId = function (userId) {
 }
 
 User.prototype.userIdExists = async function (userId) {
-    try {
-        const userExists = await checkUserId(userId);
-        return userExists;
-    } catch (error) {
-        throw new AppError('Erro interno do servidor.', 500);
-    }
+    const userExists = await checkUserId(userId);
+    return userExists;
 };
 
 module.exports = User;

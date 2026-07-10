@@ -9,7 +9,7 @@ async function create (name, email, hashPassword) {
         return result.insertId;
     } catch (error) {
         if (error.errno === 1062) throw new AppError('Email já cadastrado.', 409);
-        throw new AppError('Erro interno do servidor.', 500);
+        throw error;
     }
 };
 
