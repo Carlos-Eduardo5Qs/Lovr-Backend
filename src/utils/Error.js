@@ -24,8 +24,17 @@ function NotFoundError(message) {
 NotFoundError.prototype = Object.create(AppError.prototype);
 NotFoundError.prototype.constructor = NotFoundError;
 
+function Unauthorized (message) {
+    AppError.call(this, message || 'Acesso negado', 401);
+    this.name = 'Unauthorized';
+}
+
+Unauthorized.prototype = Object.create(AppError.prototype);
+Unauthorized.prototype.constructor = Unauthorized;
+
 module.exports = {
     AppError,
     ValidationError,
-    NotFoundError
+    NotFoundError,
+    Unauthorized
 };

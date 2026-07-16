@@ -3,11 +3,32 @@ require('dotenv').config();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-const { create, checkUserId } = require('../models/userModel');
+const { create, checkUserId, getUserByEmail } = require('../models/userModel');
 
-const { ValidationError, NotFoundError } = require('../utils/Error');
+const { ValidationError, NotFoundError, Unauthorized } = require('../utils/Error');
 
 function User () {}
+
+User.prototype.loginUser = async function (email, password) {
+    const user = await getUserByEmail(email);
+
+    if (!user) throw new Unauthorized('Email ou senha inválidos');
+
+    const isPasswordIsValid = await bcrypt.compare(password, user.passrd);
+
+    if (!isPasswordIsValid) throw new Unauthorized('Email ou senha inválidos');
+
+    const token = jwt.sign({ id: user.id }, process.env.SECRET_JWT, { expiresIn: '7d' });
+
+    return {
+        token,
+        user: {
+            id: user.id,
+            name: user.name_,
+            email: user.email
+        },
+    };
+};
 
 User.prototype.saveUserInTheDatabase = async function (name, email, password) {
     name = this.isValidName(name);

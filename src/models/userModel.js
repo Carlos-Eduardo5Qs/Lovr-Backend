@@ -20,7 +20,14 @@ async function checkUserId (userId) {
     return result[0].userExists === 1;
 };
 
+async function getUserByEmail(email) {
+    const query = 'SELECT id, name_, email, passrd FROM users WHERE email = ?';
+    const rows = await database.execute(query, [email]);
+    return rows[0] || null;
+}
+
 module.exports = { 
     create,
     checkUserId,
+    getUserByEmail
 };
