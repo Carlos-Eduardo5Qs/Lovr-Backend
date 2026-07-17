@@ -1,25 +1,38 @@
 const cloudinary = require('../config/cloudinary');
 
 const { AppError, ValidationError ,NotFoundError } = require('../utils/Error');
-const { create, getAllcard, getCardByIdAndUser, updateDynamic } = require('../models/cardModels');
+const { create, getAllcard, getCardByIdAndDashboard, updateDynamic, deleteCardById } = require('../models/cardModels');
 
-const User = require('../services/UserService');
+const Dashboard = require('../services/DashboardService');
 
-function Cards () { this.user = new User() }
+function Cards () {
+    this.dashboard = new Dashboard();
+}
 
-Cards.prototype.saveCardInTheDatabase = async function (userId, buffer, mimetype, position, back_message) {
-    const id = this.user.isValidUserId(userId);
-    const user = await this.user.userIdExists(id);
-
-    if (!user) throw new NotFoundError('Usuário não encontrado.');
+Cards.prototype.saveCardInTheDatabase = async function (userId, dashboardId, buffer, mimetype, position, back_message) {
+    await this.dashboard.verifyDashboardOwnership(dashboardId, userId);
 
     const uploadPhoto = await this.uploadPhotoToCloudinary(buffer, mimetype);
-    const cardId = await create (userId, back_message, position, uploadPhoto.url, uploadPhoto.public_id);
+    const cardId = await create (dashboardId, back_message, position, uploadPhoto.url, uploadPhoto.public_id);
         
     return {
         uploadPhoto,
         cardId
     }
+};
+
+Cards.prototype.deleteCardFromDatabase = async function (cardId, userId, dashoardId) {
+    await this.dashboard.verifyDashboardOwnership(dashoardId, userId);
+
+    const cardIdIsValid = this.isValidCardId(cardId);
+    const card = await getCardByIdAndDashboard(cardIdIsValid, dashoardId);
+
+    if (!card) throw new NotFoundError('Card não encontrado');
+    if (card.image_id) await cloudinary.uploader.destroy(card.image_id);
+
+    await deleteCardById(cardIdIsValid);
+
+    return
 };
 
 Cards.prototype.isValidCardId = function (cardId) {
@@ -34,14 +47,11 @@ Cards.prototype.isValidCardId = function (cardId) {
     return idNumber;
 }
 
-Cards.prototype.updateCardInTheDatabase = async function (cardId, userId, data, buffer, mimetype) {
-    const id = this.user.isValidUserId(userId);
-    const user = await this.user.userIdExists(id);
-
-    if (!user) throw new NotFoundError('Usuário não encontrado.');
+Cards.prototype.updateCardInTheDatabase = async function (cardId, userId, dashboardId, data, buffer, mimetype) {
+    await this.dashboard.verifyDashboardOwnership(dashboardId, userId);
 
     const cardIdIsValid = this.isValidCardId(cardId);
-    const card = await getCardByIdAndUser(cardIdIsValid, userId);
+    const card = await getCardByIdAndDashboard(cardIdIsValid, dashboardId);
 
     if (!card) throw new NotFoundError('Card não encontrado');
 
@@ -90,13 +100,10 @@ Cards.prototype.uploadPhotoToCloudinary = async function (buffer, mimetype) {
     return { url: result.secure_url, public_id: result.public_id };
 };
 
-Cards.prototype.getAllCardsFromDatabase = async function (userId) {
-    const id = this.user.isValidUserId(userId);
-    const user = await this.user.userIdExists(id);
+Cards.prototype.getAllCardsFromDatabase = async function (dashboardId, userId) {
+    await this.dashboard.verifyDashboardOwnership(dashboardId, userId);
 
-    if (!user) throw new NotFoundError('Usuário não encontrado.');
-
-    const list = await getAllcard(id);
+    const list = await getAllcard(dashboardId);
 
     return list;
 };

@@ -1,19 +1,19 @@
-const { AppError, NotFoundError } = require('../../utils/Error');
-
+const { AppError } = require('../../utils/Error');
 const CardService = require('../../services/CardService');
 
-exports.getAllCards = async (req, res) => {
+exports.delete = async (req, res) => {
     try {
-        const { dashboardId } = req.params;
+        const { dashboardId, cardId } = req.params;
+        const userId = req.userId;
 
-        const cards = await new CardService().getAllCardsFromDatabase(dashboardId, req.userId);
+        await new CardService().deleteCardFromDatabase(cardId, userId, dashboardId);
 
         return res.status(200).json({
             success: true,
             status: 200,
-            message: "Dados recuperados.",
-            data: cards,
-            error: null
+            message: 'Card deletado.',
+            data: null,
+            error: null,
         });
     } catch (error) {
         if (error instanceof AppError) {
@@ -23,7 +23,7 @@ exports.getAllCards = async (req, res) => {
                 error: error.message,
                 data: null
             });
-        }
+        };
 
         console.error(error);
 
@@ -32,6 +32,6 @@ exports.getAllCards = async (req, res) => {
             status: 500,
             error: 'Erro interno do servidor.',
             data: null
-        })
-    }
-}
+        });
+    };
+};

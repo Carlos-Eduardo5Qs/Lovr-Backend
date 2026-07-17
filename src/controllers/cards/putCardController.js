@@ -5,9 +5,11 @@ const CardService = require('../../services/CardService');
 exports.update = async (req, res) => {
     try {
         const { position, message} = req.body;
+        
         const imageBuffer = req.file ? req.file.buffer : null;
         const mimeType = req.file ? req.file.mimetype : null;
 
+        if (!req.params.dashboardId) throw new NotFoundError('Id do card do usuário ausente');
         if (!req.params.cardId) throw new NotFoundError('Id do card do usuário ausente');
 
         const updateData = {};
@@ -18,6 +20,7 @@ exports.update = async (req, res) => {
         const cardData = await new CardService().updateCardInTheDatabase(
             req.params.cardId,
             req.userId,
+            req.params.dashboardId,
             updateData,
             imageBuffer,
             mimeType
