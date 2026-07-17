@@ -107,7 +107,7 @@ User.prototype.createToken = function (payload) {
 };
 
 User.prototype.isValidUserId = function (userId) {
-    if (!userId) throw new NotFoundError('id ausente.');
+    if (!userId) throw new NotFoundError('Usuário não encontrado');
 
     const idNumber = Number(userId);
 

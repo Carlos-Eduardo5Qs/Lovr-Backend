@@ -3,8 +3,12 @@ const router = express.Router();
 
 const authMiddleware = require('../middlewares/authMiddleware');
 
-const dashboardController = require('../controllers/dashboards/createDashboardController');
+const createDashboardController = require('../controllers/dashboards/createDashboardController');
+const getAllDashboardController = require('../controllers/dashboards/getAllDashboardController');
+const putDashboardController = require('../controllers/dashboards/putDashboard.controller');
 
-router.post('/dashboard/create', authMiddleware, dashboardController.create);
+router.post('/dashboard/create', authMiddleware, createDashboardController.create);
+router.get('/dashboard/getAll', authMiddleware, getAllDashboardController.getAllCards);
+router.put('/dashboard/update/:dashboardId', authMiddleware, putDashboardController.update);
 
 module.exports = router;

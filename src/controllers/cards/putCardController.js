@@ -9,8 +9,8 @@ exports.update = async (req, res) => {
         const imageBuffer = req.file ? req.file.buffer : null;
         const mimeType = req.file ? req.file.mimetype : null;
 
-        if (!req.params.dashboardId) throw new NotFoundError('Id do card do usuário ausente');
-        if (!req.params.cardId) throw new NotFoundError('Id do card do usuário ausente');
+        if (!req.params.dashboardId) throw new NotFoundError('Mural não encontrado.');
+        if (!req.params.cardId) throw new NotFoundError('Card não encontrado.');
 
         const updateData = {};
 

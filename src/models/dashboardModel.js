@@ -37,7 +37,43 @@ async function createDashboard (userId, dashboardData) {
     return result.insertId;
 }
 
+async function getDashboardByUserId(dashboardId) {
+    const query = 'SELECT title, subtitle, terminal_user, terminal_host, terminal_welcome_msg FROM dashboard WHERE id = ?';
+    const values = [dashboardId];
+    const result = await database.execute(query, values);
+    return result[0] || null;
+}
+
+async function getAllDashboardByUserId (userId) {
+    const query = 'SELECT * FROM dashboard WHERE user_id = ?';
+    const result = await database.execute(query, [userId]);
+    return result;
+};
+
+async function updateDashboard (dashboardId, data) {
+    const keys = Object.keys(data);
+
+    if (keys.length === 0) return;
+
+    const setClause = keys.map(key => `${key} = ?`).join(', ');
+    const values = [...Object.values(data), dashboardId];
+    const query = `UPDATE dashboard SET ${setClause} WHERE id = ?`;
+
+    return await database.execute(query, values);
+};
+
+async function deleteDashboard(dashboardId) {
+    const query = 'DELETE FROM dashboard WHERE id = ?';
+    const result = await database.execute(query, [dashboardId]);
+    return result;
+};
+
 module.exports = {
     checkDashboardOwnership,
-    createDashboard
+    createDashboard,
+    
+    getAllDashboardByUserId,
+    getDashboardByUserId,
+    updateDashboard,
+    deleteDashboard
 };
