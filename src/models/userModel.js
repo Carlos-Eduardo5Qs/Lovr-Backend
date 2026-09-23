@@ -26,8 +26,28 @@ async function getUserByEmail(email) {
     return rows[0] || null;
 }
 
+async function findPasswordById(userId) {
+    const query = 'SELECT passrd FROM users WHERE id = ?';
+    const rows = await database.execute(query, [userId]);
+    return rows[0] ? rows[0].passrd : null;
+}
+
+async function updateUser(userId, data) {
+    const fields = Object.keys(data);
+    const values = Object.values(data);
+
+    const setClause = fields.map(field => `${field} = ?`).join(', ');
+    const query = `UPDATE users SET ${setClause} WHERE id = ?`;
+    
+    const rows = await database.execute(query, [...values, userId]);
+
+    return rows.affectedRows > 0;
+};
+
 module.exports = { 
     create,
     checkUserId,
-    getUserByEmail
+    getUserByEmail,
+    findPasswordById,
+    updateUser
 };

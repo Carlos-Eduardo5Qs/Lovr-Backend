@@ -3,7 +3,13 @@ require('dotenv').config();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-const { create, checkUserId, getUserByEmail } = require('../models/userModel');
+const {
+    create,
+    checkUserId,
+    getUserByEmail,
+    findPasswordById,
+    updateUser
+} = require('../models/userModel');
 
 const { ValidationError, NotFoundError, Unauthorized } = require('../utils/Error');
 
@@ -51,7 +57,7 @@ User.prototype.isValidName = function (name) {
 
     if (!nameRegex.test(cleanedName)) throw new ValidationError('Nome deve conter apenas letras e espaços.');
 
-    return name
+    return name;
 };
 
 User.prototype.isValidEmail = function (email) {
@@ -121,6 +127,66 @@ User.prototype.isValidUserId = function (userId) {
 User.prototype.userIdExists = async function (userId) {
     const userExists = await checkUserId(userId);
     return userExists;
+};
+
+User.prototype.prepareUserUpdate = async function (data) {
+    const name = data.name? this.isValidName(data.name) : undefined;
+    const access = data.access? this.isValidPassword(data.access) : undefined;
+    const email = data.email? this.isValidEmail(data.email) : undefined;
+    const password = this.isValidPassword(data.password);
+    const hashAccess = access? await this.createHashPassword(access) : undefined;
+
+    const dataForUpdate = {
+        name: name,
+        email: email,
+        access: hashAccess,
+        password: password,
+    };
+
+    for (const key in dataForUpdate) {
+        if (dataForUpdate[key] === undefined) {
+            delete dataForUpdate[key];
+        }
+    }
+
+    return dataForUpdate;
+};
+
+User.prototype.updateUser = async function (userId, data) {
+    const dataForUpdate = await this.prepareUserUpdate(data);
+    const password = await findPasswordById(userId);
+    const comparePasswords = await bcrypt.compare(dataForUpdate.password, password);
+
+    if (!comparePasswords) throw new Unauthorized();
+
+    const dataForUpdateWithoutPassword = { ...dataForUpdate };  
+    delete dataForUpdateWithoutPassword.password;
+
+    if(dataForUpdateWithoutPassword.name) {
+        dataForUpdateWithoutPassword.name_ = dataForUpdateWithoutPassword.name;
+        delete dataForUpdateWithoutPassword.name;
+    }
+
+    if (dataForUpdateWithoutPassword.access) {
+        dataForUpdateWithoutPassword.passrd = dataForUpdateWithoutPassword.access;
+        delete dataForUpdateWithoutPassword.access;
+    }
+
+    
+    /*
+    preciso de uma função para verificar se os dados estão atualizados
+    antes de fazer a atualização, caso não estejam, retornar uma mensagem de erro dizendo
+    que os dados são iguais aos que já estão no banco de dados.
+    */
+
+    const update = await updateUser(userId, dataForUpdateWithoutPassword);
+
+    dataForUpdateWithoutPassword.name = dataForUpdateWithoutPassword.name_;
+
+    return {
+        name: dataForUpdateWithoutPassword.name,
+        email: dataForUpdateWithoutPassword.email
+    };
 };
 
 module.exports = User;

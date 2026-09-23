@@ -1,18 +1,25 @@
 const { NotFoundError } = require('../utils/Error');
-const { checkDashboardOwnership, createDashboard, getDashboardByUserId, getAllDashboardByUserId, updateDashboard } = require('../models/dashboardModel');
 
-const user = require('../services/UserService');
+const {
+    checkDashboardOwnership,
+    createDashboard,
+    getDashboardByUserId,
+    getAllDashboardByUserId,
+    updateDashboard,
+    deleteDashboard
+} = require('../models/dashboardModel');
+
 const User = require('../services/UserService');
 
 function Dashboard () {
     this.user = new User();
-}
+};
 
 Dashboard.prototype.verifyDashboardOwnership = async function (dashboardId, userId) {
     const isOwner = await checkDashboardOwnership(dashboardId, userId);
     if (!isOwner) throw new NotFoundError('Mural não encontrado.');
     return isOwner;
-}
+};
 
 Dashboard.prototype.createNewDashboard = async function (userId, dashboardData) {
     if (!userId) throw new NotFoundError('Usuário não encontrado.');
@@ -31,7 +38,11 @@ Dashboard.prototype.getUserDashboards = async function (userId) {
 
     if (!isUserExists) throw new NotFoundError('Usuário não encontrado.');
 
-    return await getAllDashboardByUserId(userId);
+    const dashboards = await getAllDashboardByUserId(userId);
+
+    if (dashboards.length === 0) throw new NotFoundError('Nenhum mural foi encontrado.');
+
+    return dashboards;
 };
 
 Dashboard.prototype.updateDashboard = async function (dashboardId, userId, updateData) {
@@ -41,7 +52,7 @@ Dashboard.prototype.updateDashboard = async function (dashboardId, userId, updat
     if (!isUserExists) throw new NotFoundError('Usuário não encontrado.');
 
     const currentDashboard = await getDashboardByUserId(dashboardId, isUserIdIsValid); 
-    if (!currentDashboard) throw new NotFoundError('Dashboard não encontrado.');
+    if (!currentDashboard) throw new NotFoundError('Mural não encontrado.');
 
     await this.verifyDashboardOwnership(dashboardId, isUserIdIsValid);
 
@@ -67,6 +78,23 @@ Dashboard.prototype.updateDashboard = async function (dashboardId, userId, updat
         terminal_host: fields.terminal_host !== undefined ? fields.terminal_host : currentDashboard.terminal_host,
         terminal_welcome_msg: fields.terminal_welcome_msg !== undefined ? fields.terminal_welcome_msg : currentDashboard.terminal_welcome_msg
     };
+};
+
+Dashboard.prototype.deleteDashboard = async function (dashboardId, userId) {
+    const isValidIdUser = await this.user.isValidUserId(userId);
+    const user = await this.user.userIdExists(isValidIdUser);
+
+    if (!user) throw new NotFoundError('Usuário não encontrado.');
+
+    await this.verifyDashboardOwnership(dashboardId, user);
+
+    const Cards = require('../services/CardService');
+    const card = new Cards();
+    await card.deleteAllImagesCardsFromCloudinary(dashboardId, user);
+
+    await deleteDashboard(dashboardId);
+
+    return
 };
 
 module.exports = Dashboard;

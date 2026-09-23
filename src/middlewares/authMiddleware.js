@@ -1,9 +1,11 @@
 const jwt = require('jsonwebtoken');
 const { AppError } = require('../utils/Error');
+const User = require('../services/UserService');
 
-function authMiddleware(req, res, next) {
+async function authMiddleware(req, res, next) {
     try {
         const authHeader = req.headers.authorization;
+        const userServiceInstance = new User();
 
         if (!authHeader) throw new AppError('Token não fornecido.', 401)
 
@@ -16,10 +18,12 @@ function authMiddleware(req, res, next) {
         const token = part[1];
 
         const decoded = jwt.verify(token, process.env.SECRET_JWT);
-        
-        req.userId = decoded.id
 
-        return next()
+        if(await userServiceInstance.userIdExists(decoded.id) === false) throw new AppError('Usuário não encontrado.', 404);
+        
+        req.userId = decoded.id;
+
+        return next();
     } catch (error) {
         if (!error.statusCode) console.error('Erro ou tentativa de invasão no middleware.', error);
 
@@ -32,7 +36,7 @@ function authMiddleware(req, res, next) {
             error: message,
             data: null
         });
-    }
+    };
 };
 
 module.exports = authMiddleware;

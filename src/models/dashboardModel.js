@@ -11,11 +11,11 @@ async function checkDashboardOwnership (dashboardId, userId) {
 
 async function createDashboard (userId, dashboardData) {
     const { 
-        title, 
-        subtitle, 
-        terminal_user, 
-        terminal_host, 
-        terminal_welcome_msg 
+        title,
+        subtitle,
+        terminal_user,
+        terminal_host,
+        terminal_welcome_msg
     } = dashboardData;
 
     const query = `

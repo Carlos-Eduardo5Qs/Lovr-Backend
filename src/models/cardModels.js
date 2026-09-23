@@ -9,7 +9,7 @@ async function create (dashboard_id, message, position, image_url, image_id) {
 };
 
 async function getAllcard (dashboard_id) {
-    const query = 'SELECT id, position_, back_message, image_url FROM cards WHERE dashboard_id = ? ORDER BY position_ ASC';
+    const query = 'SELECT id, position_, back_message, image_url, image_id FROM cards WHERE dashboard_id = ? ORDER BY position_ ASC';
     const rows = await database.execute(query, [dashboard_id]);
 
     if (rows.length === 0) throw new NotFoundError('Nenhum card foi encontrado.');

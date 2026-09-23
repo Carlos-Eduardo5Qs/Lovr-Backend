@@ -108,4 +108,20 @@ Cards.prototype.getAllCardsFromDatabase = async function (dashboardId, userId) {
     return list;
 };
 
+Cards.prototype.deleteAllImagesCardsFromCloudinary = async function (dashboardId, userId) {
+    const cards = await this.getAllCardsFromDatabase(dashboardId, userId);
+
+    if (cards && cards.length > 0) {
+        for (let i = 0; i < cards.length; i++) {
+            const card = cards[i];
+            
+            if (card.image_id) {
+                await cloudinary.uploader.destroy(card.image_id);
+            };
+        };
+    };
+
+    return;
+};
+
 module.exports = Cards;
